@@ -1,0 +1,52 @@
+{
+  "name": "hellafast-setups",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build && node scripts/service-worker.mjs",
+    "preview": "vite preview --host 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test:e2e": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rbntje/Hellafast-setups.git"
+  },
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Rbntje/Hellafast-setups/issues"
+  },
+  "homepage": "https://github.com/Rbntje/Hellafast-setups#readme",
+  "dependencies": {
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/ios": "^8.6.2",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "dexie": "^4.4.7",
+    "fflate": "^0.8.3",
+    "lucide-react": "^1.78.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "private": true,
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^6.1.1",
+    "fake-indexeddb": "^6.2.8",
+    "globals": "^16.5.0",
+    "typescript": "5.9",
+    "typescript-eslint": "^8.46.2",
+    "vite": "^7.3.8",
+    "vitest": "^3.2.7"
+  }
+}

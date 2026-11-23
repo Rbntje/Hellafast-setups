@@ -13,6 +13,7 @@ Sources were checked on 2026-11-23. Settings from different cars, patches, condi
 | [Formula 1 calendar](https://www.formula1.com/en/racing/2025) | Circuit reference for the base track list |
 | [Steam Community F1 25](https://steamcommunity.com/app/3059520/guides/) | Accessible guide index. Individual setups require verification |
 | [Apple iOS 26 updates](https://support.apple.com/en-us/123075) | Official iOS 26 update history |
+| [Apple iOS 26 compatibility announcement](https://www.apple.com/newsroom/2025/06/apple-elevates-the-iphone-experience-with-ios-26/) | Apple lists iPhone 11 and later for the software update. Model capability still depends on the browser adapter and runtime |
 | [Safari 26](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/) | WebGPU support and WebKit changes |
 | [WebLLM](https://webllm.mlc.ai/docs/) · [Transformers.js](https://huggingface.co/docs/transformers.js/index) · [ONNX Web](https://onnxruntime.ai/docs/tutorials/web/) | Runtime options for measured device benchmarking |
 | [GitHub Pages workflow](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) | Static deployment and required permissions |
