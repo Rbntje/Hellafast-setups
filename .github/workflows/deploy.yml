@@ -26,8 +26,10 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Run browser tests with the runner's Chrome
+        run: |
+          export HELLAFAST_CHROMIUM="$(command -v google-chrome)"
+          npm run test:e2e
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
