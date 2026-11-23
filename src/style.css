@@ -297,3 +297,16 @@ td svg { vertical-align: middle; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
 }
+.model-controls { padding-top: 12px; border-top: 1px solid var(--stroke); }
+.model-controls p { margin: 8px 0; font-size: .8rem; line-height: 1.5; }
+.model-controls progress { display: block; width: 100%; accent-color: var(--accent); margin: 8px 0; }
+.model-actions { margin-top: 8px; }
+.model-actions > span { color: var(--muted); font-size: .82rem; }
+.model-message-label { color: var(--accent); display: block; font-size: .71rem; margin-bottom: 4px; }
+.circuit-meta { margin: -6px 0 14px; font-size: .79rem; }
+.circuit-meta a { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); }
+.feedback-block { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--stroke); }
+.feedback-block > p, .proposal > p { margin: 7px 0 13px; font-size: .83rem; line-height: 1.5; }
+.feedback-record { margin-top: 12px; padding: 10px 0 0; border-top: 1px solid var(--stroke); font-size: .83rem; overflow-wrap: anywhere; }
+.feedback-record p { color: var(--muted); margin-top: 6px; }
+.feedback-block .proposal { margin-top: 12px; }

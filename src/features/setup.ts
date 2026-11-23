@@ -199,13 +199,24 @@ export function createSetup(input: Draft, driver: Driver, evidence: Evidence[], 
   return { schema: schemaVersion, values, reasons, evidence, researchNote, confidence: exact.length >= 2 ? 'Moderate' : 'Experimental' }
 }
 
+export const feedbackTopics = {
+  'Turn-in': 'Entry rotation', Understeer: 'Front grip', Oversteer: 'Rear stability',
+  Traction: 'Exit traction', Braking: 'Braking stability', 'Tyre wear': 'Tyre wear', 'Kerb behavior': 'Kerb behavior',
+} as const
+export const feedbackOutcomes = ['Needs work', 'Improved', 'Consistent'] as const
+export type Feedback = {
+  id: string; date: string; topic: keyof typeof feedbackTopics; outcome: (typeof feedbackOutcomes)[number]; notes: string
+}
+
 export const requests = [
   { match: /wet|rain/i, label: 'Wet adaptation', change: { frontWing: 3, rearWing: 5, diffOn: -15, rearSprings: -3, rearHeight: 2 }, reason: 'More downforce and a softer rear platform aim for more progressive grip in the wet.' },
   { match: /rear.*stab|stab.*rear|oversteer/i, label: 'Rear stability', change: { rearWing: 3, rearArb: -2, rearToe: 0.02 }, reason: 'More rear wing, softer rear roll stiffness and additional rear toe prioritize rear stability.' },
   { match: /traction|hairpin|wheelspin/i, label: 'Exit traction', change: { diffOn: -10, rearSprings: -3 }, reason: 'Lower on-throttle lock and softer rear springs can make slow-corner power delivery more progressive.' },
   { match: /rotation|turn.in|entry/i, label: 'Entry rotation', change: { diffOff: -10, frontWing: 2 }, reason: 'Lower off-throttle lock and more front wing aim to help the car turn under a lift.' },
   { match: /front grip|understeer|front end/i, label: 'Front grip', change: { frontWing: 2, frontArb: -1 }, reason: 'Additional front wing and slightly softer front roll stiffness target more front grip.' },
-  { match: /brak/i, label: 'Braking stability', change: { brakeBias: 1, brakePressure: -2 }, reason: 'A little more front bias and less peak pressure aim to reduce rear locking when braking.' },
+  { match: /tyre wear|tire wear/i, label: 'Tyre conservation', change: { frontCamber: 0.1, rearCamber: 0.1, frontToe: -0.01, rearToe: -0.01 }, reason: 'Less extreme camber and toe may reduce scrub. Watch tyre temperatures and wear over a comparable stint.' },
+  { match: /kerb|curb/i, label: 'Kerb compliance', change: { frontHeight: 1, rearHeight: 1, rearSprings: -2 }, reason: 'A little more clearance and a softer rear spring aim to keep contact over kerbs. Check aero balance after the ride-height change.' },
+  { match: /brak|lock(?:s|ing)? up|wheel lock/i, label: 'Braking stability', change: { brakeBias: 1, brakePressure: -2 }, reason: 'A little more front bias and less peak pressure aim to reduce rear locking when braking.' },
 ] satisfies { match: RegExp; label: string; change: Partial<Settings>; reason: string }[]
 
 export function propose(message: string, current: Settings) {

@@ -60,6 +60,15 @@ export function SettingsTable({ values }: { values: Settings }) {
   </section>)}</div>
 }
 
+const differenceEffects = [
+  'A larger front-to-rear wing split can favor turn-in. More rear wing can improve stability and add drag.',
+  'Differential lock affects rotation off throttle and how the car puts power down on exit.',
+  'Camber and toe can affect contact patch, scrub and tyre temperatures.',
+  'Springs, anti-roll bars and ride height change how the platform responds to kerbs, load and direction changes.',
+  'Brake bias moves braking load between axles. Pressure affects how easily a wheel locks.',
+  'Pressure can alter tyre warm-up, contact patch and wear. Compare pressures over a representative stint.',
+]
+
 export function Differences({ before, after }: { before: Settings; after: Settings }) {
   const all = compare(before, after)
   const changed = all.filter((row) => row.delta)
@@ -71,7 +80,9 @@ export function Differences({ before, after }: { before: Settings; after: Settin
         <td className={delta ? 'accent' : 'muted'}>{delta > 0 && <ArrowUp size={12}/>} {delta < 0 && <ArrowDown size={12}/>} {delta || '—'}</td>
       </tr>)}</tbody>
     </table></div>
-    <p className="muted">A larger front-to-rear wing split can favor turn-in. More rear wing can improve stability at the cost of straight-line speed. Check the changes together on track.</p>
+    {changed.length > 0 && <ul className="reasons">{groups.map(([group, keys], index) =>
+      changed.some((change) => keys.includes(change.key)) && <li key={group}>{differenceEffects[index]}</li>,
+    )}</ul>}
   </div>
 }
 

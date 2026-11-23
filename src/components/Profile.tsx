@@ -4,7 +4,9 @@ import { defaultDriver, traits } from '../features/setup'
 import type { Driver } from '../features/setup'
 import { downloadBackup, importBackup, readBackupBytes, savePreferences } from '../storage/db'
 import type { Preferences } from '../storage/db'
+import { persistQuiz } from '../storage/edit-journal'
 import { PageHeading } from './shared'
+import { ModelControls } from './ModelControls'
 
 export function Profile({ preferences, offlineReady, report }: {
   preferences: Preferences; offlineReady: boolean; report: (message: string) => void
@@ -63,8 +65,9 @@ export function Profile({ preferences, offlineReady, report }: {
       <div className="profile-right">
         <section className="panel">
           <div className="panel-header"><div className="engine-heading"><span className="empty-icon"><Cpu size={21}/></span><h2>Engine & device</h2></div></div>
-          <dl className="device-list"><div><dt>Engineering engine</dt><dd>Local rules · Ready</dd></div><div><dt>WebGPU</dt><dd>{gpu}</dd></div><div><dt>Language model</dt><dd>Unavailable in this preview</dd></div><div><dt>Offline shell</dt><dd>{offlineReady ? 'Ready' : 'Awaiting cache'}</dd></div></dl>
+          <dl className="device-list"><div><dt>Engineering engine</dt><dd>Local rules · Ready</dd></div><div><dt>WebGPU</dt><dd>{gpu}</dd></div><div><dt>Offline shell</dt><dd>{offlineReady ? 'Ready' : 'Awaiting cache'}</dd></div></dl>
           <label className="check-row"><input type="checkbox" checked={preferences.ignition} onChange={(event) => void savePreferences({ ignition: event.target.checked }).catch(() => report('The ignition preference could not be saved.'))}/> Show ignition at startup</label>
+          <ModelControls report={report}/>
         </section>
         <section className="panel">
           <div className="panel-header"><div className="engine-heading"><span className="empty-icon"><Database size={21}/></span><h2>Storage & backup</h2></div></div>
@@ -80,7 +83,10 @@ export function Profile({ preferences, offlineReady, report }: {
             <input type="file" ref={file} accept=".json,.zip,application/json,application/zip" hidden onChange={(event) => void restore(event.target.files?.[0])}/></div>
         </section>
         <section className="panel"><div className="panel-header"><div className="engine-heading"><span className="empty-icon"><ShieldCheck size={21}/></span><h2>Privacy</h2></div></div>
-          <p className="muted">Setups, preferences and conversations stay in this browser. Public research is optional during setup creation. The app has no analytics or cloud account.</p>
+          <p className="muted">Setups, preferences and conversations stay in this browser. The app has no analytics or cloud account.</p>
+          <label className="check-row"><input type="checkbox" checked={preferences.draft.online} onChange={(event) => void persistQuiz({
+            draft: { ...preferences.draft, online: event.target.checked },
+          }).catch(() => report('The research preference could not be saved.'))}/> Enable public source lookup in the setup quiz</label>
         </section>
       </div>
     </div>

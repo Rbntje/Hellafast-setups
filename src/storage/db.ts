@@ -1,18 +1,18 @@
 import Dexie from 'dexie'
 import type { EntityTable } from 'dexie'
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
-import { circuits, concerns, defaultDriver, defaults, phases, schemaVersion, settings, validSetting, validSettings } from '../features/setup'
-import type { Draft, Driver, Evidence, Result, Settings } from '../features/setup'
+import { circuits, concerns, defaultDriver, defaults, feedbackOutcomes, feedbackTopics, phases, schemaVersion, settings, validSetting, validSettings } from '../features/setup'
+import type { Draft, Driver, Evidence, Feedback, Result, Settings } from '../features/setup'
 import { sourceUrl } from '../features/research'
 
-export type Version = { id: string; date: string; label: string; weather: Draft['weather']; values: Settings; reasons: string[] }
+export type Version = { id: string; date: string; label: string; weather: Draft['weather']; values: Settings; reasons: string[]; feedback?: Feedback[] }
 export type Setup = {
   id: string; name: string; created: string; updated: string; favorite: boolean; archived: boolean
   folderId: string | null; tags: string[]; notes: string; draft: Draft; driver: Driver; result: Result; versions: Version[]
 }
 export type Folder = { id: string; name: string; parentId: string | null }
 export type Preferences = { id: string; driver: Driver; draft: Draft; quizStep: number; imports: Evidence[]; ignition: boolean }
-export type ChatEntry = { id: string; setupId: string; text: string; answer: string; date: string }
+export type ChatEntry = { id: string; setupId: string; text: string; answer: string; date: string; method?: 'model' | 'model-fallback' }
 
 export const initialPreferences: Preferences = {
   id: 'local', driver: defaultDriver, draft: defaults, quizStep: 0, imports: [], ignition: true,
@@ -67,6 +67,17 @@ export async function appendVersion(id: string, expectedVersion: string, next: V
   })
 }
 
+export async function addFeedback(id: string, expectedVersion: string, feedback: Feedback, database = db) {
+  return database.transaction('rw', database.setups, async () => {
+    const setup = await database.setups.get(id)
+    const current = setup?.versions.at(-1)
+    if (!setup || !current || current.id !== expectedVersion) throw new Error('The active version changed. Reopen it before saving feedback.')
+    if ((current.feedback?.length ?? 0) >= 300) throw new Error('This version has reached its feedback limit.')
+    const updated = { ...current, feedback: [...(current.feedback ?? []), feedback] }
+    await database.setups.put({ ...setup, updated: feedback.date, versions: [...setup.versions.slice(0, -1), updated] })
+  })
+}
+
 export async function updateSetup(id: string, changes: Partial<Pick<Setup, 'name' | 'favorite' | 'archived' | 'notes' | 'tags' | 'folderId'>>, database = db) {
   const count = await database.setups.update(id, { ...changes, updated: new Date().toISOString() })
   if (!count) throw new Error('This setup is no longer in your garage.')
@@ -111,10 +122,16 @@ function validEvidence(value: unknown) {
 function evidenceList(value: unknown) {
   return Array.isArray(value) && value.length <= 100 && value.every(validEvidence)
 }
+function validFeedback(value: unknown) {
+  const row = record(value)
+  return identifier(row.id) && date(row.date) && Object.keys(feedbackTopics).includes(String(row.topic))
+    && feedbackOutcomes.some((item) => item === row.outcome) && text(row.notes, 500)
+}
 function validVersion(value: unknown) {
   const row = record(value)
   return identifier(row.id) && date(row.date) && text(row.label, 150) && weather(row.weather)
     && validSettings(row.values) && strings(row.reasons)
+    && (row.feedback === undefined || (Array.isArray(row.feedback) && row.feedback.length <= 300 && row.feedback.every(validFeedback)))
 }
 function validSetup(value: unknown) {
   const row = record(value), result = record(row.result)
@@ -163,7 +180,7 @@ export function decodeBackup(input: string): Backup {
   }
   if (backup.chat !== undefined && (!Array.isArray(backup.chat) || backup.chat.length > 20000 || !backup.chat.every((item: unknown) => {
     const row = record(item)
-    return identifier(row.id) && identifier(row.setupId) && text(row.text) && text(row.answer) && date(row.date)
+    return identifier(row.id) && identifier(row.setupId) && text(row.text) && text(row.answer) && date(row.date) && (row.method === undefined || row.method === 'model' || row.method === 'model-fallback')
   }))) throw new Error('The backup contains invalid engineer messages.')
   return backup as unknown as Backup
 }

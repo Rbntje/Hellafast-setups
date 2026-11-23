@@ -1,4 +1,5 @@
 import { settings, validSetting } from './setup'
+import { circuitMetadata } from './circuit-metadata'
 import type { Draft, Evidence, Setting, Settings } from './setup'
 
 const publicDataset = 'https://raw.githubusercontent.com/gborges0727/f1-setups/f83caf2d240a88821101eb04ddcf97b729f9ca3e/data/f1-25.json'
@@ -74,6 +75,13 @@ export async function research(draft: Draft, imports: Evidence[], fetchPublic: t
     car: 'Base game', track: draft.circuit, weather: 'All', session: 'All', values: {},
     note: 'Reviewed during development. Identifies the game and version history. It does not provide setup values.',
   }, ...relevant]
+  const circuit = circuitMetadata[draft.circuit]
+  if (circuit) items.push({
+    name: 'Formula 1 circuit reference', url: circuit.url, accessedAt: '2026-11-23',
+    kind: 'Official', game: 'F1 25', patch: 'Not applicable', car: 'All',
+    track: draft.circuit, weather: 'All', session: 'All', values: {},
+    note: `Reviewed during development. The official 2025 Grand Prix layout is ${circuit.lengthKm.toFixed(3)} km long. The source describes the real-world venue.`,
+  })
   let note = 'Public lookup is off. The local engineering baseline and any matching imported settings are available.'
   if (draft.online) {
     try {

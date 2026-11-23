@@ -2,7 +2,9 @@
 
 Find Your Line. Build Your Setup. Chase Perfection.
 
-HELLAFAST is an original, local-first F1 25 setup workshop designed for iPhone. The preview includes a guided quiz, a deterministic engineering worker, 24 base-game circuit profiles, a private garage, a version-aware engineer, Driver DNA, and offline use after the first successful cache installation. The base-game estimates are experimental and should be checked in-game.
+HELLAFAST is an original, local-first F1 25 setup workshop designed for iPhone. The preview includes a guided quiz, a deterministic engineering worker, 24 base-game circuit profiles, a private garage, versioned test feedback, Driver DNA, and offline use after the first successful cache installation. The base-game estimates are experimental and should be checked in-game.
+
+The rules engine handles setup adjustments on its own. Profile offers an opt-in 104 MiB SmolLM2 download for experimental local request interpretation. After download it can run offline. All proposed settings are still calculated, validated and applied by the rules engine after confirmation.
 
 ## Develop
 

@@ -3,6 +3,7 @@ import { liveQuery } from 'dexie'
 import { Boxes, CircleUserRound, Cpu, House, Plus, ShieldCheck, WifiOff, X } from 'lucide-react'
 import { defaultDriver } from '../features/setup'
 import { db, initialPreferences } from '../storage/db'
+import { recoverEdits } from '../storage/edit-journal'
 import type { Folder, Preferences, Setup } from '../storage/db'
 import { Create } from '../components/Create'
 import { Garage, SetupDetail } from '../components/Garage'
@@ -42,13 +43,20 @@ export default function App() {
   const [ignition, setIgnition] = useState<'full' | 'brief' | 'pending' | 'closed'>('pending')
 
   useEffect(() => {
-    const subscription = liveQuery(async () => {
-      const [setups, folders, preferences] = await Promise.all([
-        db.setups.orderBy('updated').reverse().toArray(), db.folders.toArray(), db.preferences.get('local'),
-      ])
-      return { setups, folders, preferences: preferences ?? initialPreferences }
-    }).subscribe({ next: setData, error: () => setError(true) })
-    return () => subscription.unsubscribe()
+    let cancelled = false
+    let subscription: { unsubscribe: () => void } | undefined
+    void recoverEdits().catch(() => {
+      if (!cancelled) setToast('A pending edit could not be restored. It remains queued on this device.')
+    }).then(() => {
+      if (cancelled) return
+      subscription = liveQuery(async () => {
+        const [setups, folders, preferences] = await Promise.all([
+          db.setups.orderBy('updated').reverse().toArray(), db.folders.toArray(), db.preferences.get('local'),
+        ])
+        return { setups, folders, preferences: preferences ?? initialPreferences }
+      }).subscribe({ next: setData, error: () => setError(true) })
+    })
+    return () => { cancelled = true; subscription?.unsubscribe() }
   }, [])
 
   useEffect(() => {

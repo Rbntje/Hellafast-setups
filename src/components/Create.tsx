@@ -1,9 +1,11 @@
 import { ArrowLeft, ArrowRight, Check, CloudRain, FlaskConical, Flag, Radio, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { circuits, concerns, phases } from '../features/setup'
+import { circuitMetadata } from '../features/circuit-metadata'
 import type { Draft } from '../features/setup'
 import { parseManual, searchTerms } from '../features/research'
 import { db, newSetup, savePreferences } from '../storage/db'
+import { persistQuiz } from '../storage/edit-journal'
 import type { Preferences } from '../storage/db'
 import type { EngineeringUpdate } from '../workers/engineering'
 import { PageHeading } from './shared'
@@ -32,11 +34,11 @@ export function Create({ preferences, onSaved, report }: {
   function change(patch: Partial<Draft>) {
     const next = { ...draft, ...patch }
     setDraft(next)
-    void savePreferences({ draft: next }).catch(() => report('The quiz change could not be saved locally.'))
+    void persistQuiz({ draft: next }).catch(() => report('The quiz change could not be saved locally.'))
   }
   function move(next: number) {
     setStep(next)
-    void savePreferences({ quizStep: next }).catch(() => report('The quiz progress could not be saved locally.'))
+    void persistQuiz({ quizStep: next }).catch(() => report('The quiz progress could not be saved locally.'))
   }
   function stop() {
     worker.current?.terminate()
@@ -50,7 +52,7 @@ export function Create({ preferences, onSaved, report }: {
       if (next.length > 100) throw new Error('Remove a source before adding more.')
       setImports(next)
       setSource({ name: '', url: '', values: '' })
-      void savePreferences({ imports: next }).catch(() => report('The source could not be saved locally.'))
+      void persistQuiz({ imports: next }).catch(() => report('The source could not be saved locally.'))
     } catch (error) {
       report(error instanceof Error ? error.message : 'The source could not be added.')
     }
@@ -58,7 +60,7 @@ export function Create({ preferences, onSaved, report }: {
   function removeSource(url: string) {
     const next = imports.filter((item) => item.url !== url || item.track !== draft.circuit || item.weather !== draft.weather || item.session !== draft.session)
     setImports(next)
-    void savePreferences({ imports: next }).catch(() => report('The source could not be removed locally.'))
+    void persistQuiz({ imports: next }).catch(() => report('The source could not be removed locally.'))
   }
   function generate() {
     if (worker.current || committing) return
@@ -105,6 +107,7 @@ export function Create({ preferences, onSaved, report }: {
       {step === 0 && <>
         <div className="section-lead"><Flag size={22}/><div><h2 id="step-title">Set the conditions</h2><p>F1 25 base game · Generic F1 25 car</p></div></div>
         <label>Circuit<select value={draft.circuit} onChange={(event) => change({ circuit: event.target.value })}>{circuits.map((item) => <option key={item.id} value={item.id}>{item.country} · {item.name}</option>)}</select></label>
+        <p className="circuit-meta"><a href={circuitMetadata[track.id].url} target="_blank" rel="noreferrer">{circuitMetadata[track.id].lengthKm.toFixed(3)} km · Official circuit reference ↗</a></p>
         <div className="form-columns">
           <fieldset><legend>Weather</legend><div className="segmented">
             <button className={draft.weather === 'Dry' ? 'selected' : ''} aria-pressed={draft.weather === 'Dry'} onClick={() => change({ weather: 'Dry' })}><Sun size={17}/> Dry</button>

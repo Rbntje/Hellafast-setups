@@ -40,6 +40,12 @@ test('project-path home, navigation and validated garage workflow', async ({ pag
   await expect(page.getByText('V2 · Rear stability', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Restore as new version' }).click()
   await expect(page.getByText('V3 · Restored Initial setup')).toBeVisible()
+  await page.getByLabel('Handling area').selectOption('Braking')
+  await page.getByLabel('Corner or test note').fill('Locks on entry.')
+  await page.getByRole('button', { name: 'Save feedback', exact: true }).click()
+  await page.getByRole('button', { name: 'Review an adjustment' }).click()
+  await page.getByRole('button', { name: 'Save feedback adjustment as a new version' }).click()
+  await expect(page.getByText('V4 · Braking stability')).toBeVisible()
   expect(errors).toEqual([])
 })
 
@@ -112,4 +118,22 @@ test('public evidence reaches the worker without transmitting private context', 
   await page.getByText('F1Laps community aggregate via gborges0727', { exact: false }).click()
   await expect(page.getByText('35', { exact: true })).toBeVisible()
   expect(requestCount).toBe(1)
+})
+
+test('model download requires consent and rejects a partial file', async ({ page, context }) => {
+  let transfers = 0
+  await context.route('https://huggingface.co/lmstudio-community/SmolLM2-135M-Instruct-GGUF/**', async (route) => {
+    transfers += 1
+    expect(route.request().postData()).toBeNull()
+    await route.fulfill({ body: 'incomplete', headers: { 'access-control-allow-origin': '*' } })
+  })
+  await page.goto('./#profile')
+  const download = page.getByRole('button', { name: 'Download model', exact: true })
+  await expect(download).toBeDisabled()
+  expect(transfers).toBe(0)
+  await page.getByLabel('Download this model to this device').check()
+  await download.click()
+  await expect(page.getByText(/model download is incomplete/i)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Remove model' })).toHaveCount(0)
+  expect(transfers).toBe(1)
 })

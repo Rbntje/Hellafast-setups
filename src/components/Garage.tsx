@@ -4,7 +4,9 @@ import { circuits, compare, groups, ranges } from '../features/setup'
 import type { Setting, Settings } from '../features/setup'
 import { appendVersion, db, downloadBackup, updateSetup, version } from '../storage/db'
 import type { Folder, Setup } from '../storage/db'
+import { persistSetupDetails } from '../storage/edit-journal'
 import { Differences, Empty, EvidenceSummary, PageHeading, SettingsTable, SetupList } from './shared'
+import { TestFeedback } from './TestFeedback'
 
 export function folderName(id: string, folders: Folder[]): string {
   const folder = folders.find((item) => item.id === id)
@@ -133,7 +135,7 @@ export function SetupDetail({ setup, folders, close, open, engineer, report }: {
   const track = circuits.find((row) => row.id === setup.draft.circuit)
 
   function saveMetadata(patch: Parameters<typeof updateSetup>[1]) {
-    void updateSetup(setup.id, patch).catch(() => report('The change could not be saved. Your existing setup is still in the garage.'))
+    void persistSetupDetails(setup.id, patch).catch(() => report('The change could not be saved. Your existing setup is still in the garage.'))
   }
   async function apply(label: string, weather: typeof active.weather, next: Settings, reasons: string[]) {
     if (saving) return
@@ -193,7 +195,7 @@ export function SetupDetail({ setup, folders, close, open, engineer, report }: {
     {view === 'research' && <EvidenceSummary result={setup.result}/>}
     {view === 'versions' && <section className="panel version-panel">
       <div className="panel-header"><h2>Version history</h2><span className="eyebrow accent">{setup.versions.length} saved</span></div>
-      <ol className="version-list">{setup.versions.map((item, index) => <li key={item.id}><strong>V{index + 1} · {item.label}</strong><span>{item.weather} · {item.date.slice(0, 10)}</span></li>)}</ol>
+      <ol className="version-list">{setup.versions.map((item, index) => <li key={item.id}><strong>V{index + 1} · {item.label}</strong><span>{item.weather} · {item.date.slice(0, 10)}{item.feedback?.length ? ` · ${item.feedback.length} test log(s)` : ''}</span></li>)}</ol>
       <ul className="reasons">{active.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
       {previous && <>
         <label>Compare with active version<select value={previous.id} onChange={(event) => setSelection(event.target.value)}>
@@ -202,6 +204,7 @@ export function SetupDetail({ setup, folders, close, open, engineer, report }: {
         <Differences before={previous.values} after={active.values}/>
         <button className="button secondary" disabled={saving} onClick={() => void apply(`Restored ${previous.label}`.slice(0, 150), previous.weather, previous.values, previous.reasons)}>Restore as new version</button>
       </>}
+      <TestFeedback key={active.id} setupId={setup.id} active={active} saving={saving} apply={apply} report={report}/>
     </section>}
     {view === 'details' && <section className="panel form-panel">
       <div className="panel-header"><h2>Garage details</h2><span className="eyebrow accent">LOCAL AUTOSAVE</span></div>

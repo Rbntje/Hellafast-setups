@@ -51,3 +51,18 @@ it('rejects broken hierarchy and invalid setup values before importing', () => {
   const loop = [{ id: 'a', name: 'a', parentId: 'b' }, { id: 'b', name: 'b', parentId: 'a' }]
   expect(() => decodeBackup(JSON.stringify({ format: 'hellafast-backup', version: 1, setups: [], folders: loop }))).toThrow(/hierarchy/)
 })
+
+it('keeps test feedback with the version under test after an adjustment', async () => {
+  const { addFeedback } = await import('../src/storage/db')
+  const setup = sample()
+  await database.setups.add(setup)
+  const original = setup.versions[0]
+  const feedback = { id: crypto.randomUUID(), date: new Date().toISOString(), topic: 'Braking', outcome: 'Needs work', notes: 'Locks in turn one.' } as const
+  await addFeedback(setup.id, original.id, feedback, database)
+  await appendVersion(setup.id, original.id, version('Brake stability', 'Dry', original.values, []), database)
+  await expect(addFeedback(setup.id, original.id, feedback, database)).rejects.toThrow(/active version changed/)
+  const stored = await database.setups.get(setup.id)
+  expect(stored?.versions[0].feedback).toEqual([feedback])
+  expect(stored?.versions[1].feedback).toBeUndefined()
+  expect(() => decodeBackup(JSON.stringify({ format: 'hellafast-backup', version: 1, setups: [stored], folders: [] }))).not.toThrow()
+})

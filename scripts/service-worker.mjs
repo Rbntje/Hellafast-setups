@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFile, readdir, writeFile } from 'node:fs/promises'
 
 const assets = (await readdir('dist', { recursive: true, withFileTypes: true }))
-  .filter((entry) => entry.isFile() && entry.name !== 'sw.js')
+  .filter((entry) => entry.isFile() && entry.name !== 'sw.js' && !entry.name.endsWith('.wasm'))
   .map((entry) => `./${entry.parentPath.replace(/^dist\/?/, '')}/${entry.name}`.replace(/^\.\/\//, './'))
   .sort()
 const hash = createHash('sha256')
